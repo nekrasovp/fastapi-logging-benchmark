@@ -1,12 +1,22 @@
 [project]
 name = "fastapi-logging"
 version = "0.1.0"
-description = "Add your description here"
+description = "Reproducible microbenchmark of logging strategies in an async FastAPI application"
 readme = "README.md"
 requires-python = ">=3.12"
+license = { file = "LICENSE" }
 dependencies = [
     "aiologger>=0.7.0",
     "fastapi>=0.121.0",
     "locust>=2.42.2",
     "uvicorn>=0.38.0",
 ]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=8.4.2",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

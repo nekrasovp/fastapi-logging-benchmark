@@ -1,9 +1,10 @@
-# locustfile.py
+import os
+
 from locust import HttpUser, task, constant_pacing, tag
 
 
 PACE_S = 0.5  # s / user
-N_LOGS = 400  # logs / endpoint
+N_LOGS = int(os.environ.get("N_LOGS", "400"))
 
 
 class WebsiteUser(HttpUser):

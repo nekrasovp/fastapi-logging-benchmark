@@ -1,9 +1,6 @@
 # main.py
 import asyncio
-import atexit
 import logging
-import queue
-from logging.handlers import QueueHandler, QueueListener
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -21,40 +18,17 @@ LOG_FORMAT = (
     "%(message)s"
 )
 LOG_DATEFMT = "%Y-%m-%d %H:%M:%S"
+log = logging.getLogger("benchmark.standard")
 
 
 def configure_default_logger(level: str = "INFO") -> None:
-    """Стандартная конфигурация логирования"""
-    logging.basicConfig(
-        level=level,
-        datefmt=LOG_DATEFMT,
-        format=LOG_FORMAT,
-    )
-
-
-def configure_queue_logger(level: str = "INFO") -> None:
-    """
-    Queue-based логирование с QueueHandler/QueueListener
-    https://docs.python.org/3/howto/logging-cookbook.html#dealing-with-handlers-that-block
-    """
-    que = queue.Queue(-1)
-    queue_handler = QueueHandler(que)
+    """Configure the synchronous logger independently from Uvicorn."""
     handler = logging.StreamHandler()
-    listener = QueueListener(que, handler)
-
-    root = logging.getLogger()
-    root.setLevel(level)
-    formatter = logging.Formatter(LOG_FORMAT, LOG_DATEFMT)
-    handler.setFormatter(formatter)
-
-    root.addHandler(queue_handler)
-    listener.start()
-
-    atexit.register(listener.stop)
-
-
-# Инициализация стандартного логгера
-log = logging.getLogger(__name__)
+    handler.setFormatter(logging.Formatter(LOG_FORMAT, LOG_DATEFMT))
+    log.handlers.clear()
+    log.addHandler(handler)
+    log.setLevel(level)
+    log.propagate = False
 
 # Глобальные переменные для async логирования
 aiolog = None
@@ -65,6 +39,7 @@ custom_log_task = None
 async def lifespan(app: FastAPI):
     # Startup
     global aiolog, custom_log_queue, custom_log_task
+    configure_default_logger()
     aiolog = Logger.with_default_handlers(
         name='fastapi-logger',
         level=LogLevel.INFO
@@ -175,8 +150,4 @@ async def custom_async_await_endpoint(n: int) -> dict[str, bool]:
 
 
 if __name__ == "__main__":
-    # Раскомментируйте одну из конфигураций для теста
-    configure_default_logger()  # стандартное логирование
-    # configure_queue_logger()  # queue-based логирование
-    
     uvicorn.run(app)

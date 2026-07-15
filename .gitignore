@@ -1,10 +1,14 @@
 # Python-generated files
 __pycache__/
-*.py[oc]
+*.py[cod]
 build/
 dist/
 wheels/
 *.egg-info
 
-# Virtual environments
-.venv
+# Virtual environments and tooling
+.venv/
+.pytest_cache/
+
+# Local benchmark output
+results/
